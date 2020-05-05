@@ -1,3 +1,5 @@
+from math import exp
+
 import cv2
 import numpy as np
 import numpy.matlib
@@ -71,11 +73,17 @@ I = cv2.imread(IMAGE_DIR_PATH + os.sep + "001.png")
 
 # COMPUTE NORMALIZED HISTOGRAM
 q = compNormHist(I, s_initial)
-
+p = compNormHist(I, s_initial)
 # COMPUTE NORMALIZED WEIGHTS (W) AND PREDICTOR CDFS (C)
-# YOU NEED TO FILL THIS PART WITH CODE:
-# ........
-# ........
+W = [np.zeros(len(s_initial))] * N
+for j in range(N):
+    W[j] = exp(20*np.sum(np.sqrt(np.multiply(q,p))))
+
+W = W / np.sum(W)
+C = [0] * N
+C[0] = W[0]
+for c in range(1,N):
+    C[c] = W[c]+C[c-1]
 
 images_processed = 1
 
