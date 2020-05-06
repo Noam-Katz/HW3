@@ -14,14 +14,18 @@ s_initial = [297,    # x center
 def compNormHist(I, S):
     # INPUT  = I (image) AND s (1x6 STATE VECTOR, CAN ALSO BE ONE COLUMN FROM S)
     # OUTPUT = normHist (NORMALIZED HISTOGRAM 16x16x16 SPREAD OUT AS A 4096x1 VECTOR. NORMALIZED = SUM OF TOTAL ELEMENTS IN THE HISTOGRAM = 1)
-    patch = I[(S[1] - S[3]):(S[1] + S[3]), (S[0] - S[2]):(S[0] + S[2])]
+
+    patch = I[(S[1] - S[3]):(S[1] + S[3]), (S[0] - S[2]):(S[0] + S[2])] # cut the patch from image
     n_colors = 16
     RGBvector = [0] * 4096
+
+    # Quantization to 4 bits (0-15)
     for i in range(3):
         indexRange = (np.max(patch[:, :, i]) - np.min(patch[:, :, i]))
         quantUnit = indexRange // n_colors
         patch[:, :, i] = (patch[:, :, i] - np.min(patch[:, :, i])) // quantUnit
 
+    # Making a 4096 vector for every permutation of RGB values
     for x in range(patch.shape[1]):  # shape[1] is width
         for y in range(patch.shape[0]):  # shape[0] is height
             R = patch[y, x, 1]
@@ -29,6 +33,7 @@ def compNormHist(I, S):
             B = patch[y, x, 1]
             RGBvector[R + (G * 15) + (B * 15 * 15)] += 1
 
+    # Return normalized vector
     return RGBvector / np.sum(RGBvector)
 
 
@@ -36,8 +41,9 @@ def predictParticles(S_next_tag):
     # INPUT  = S_next_tag (previously sampled particles)
     # OUTPUT = S_next (predicted particles. weights and CDF not updated yet)
     mean, sigma = 0, 1
-
     S_next = S_next_tag
+
+    # Add velocity to pixels value
     S_next[0, :] = np.round(S_next[0, :] + S_next[4, :])  # X + Vx
     S_next[1, :] = np.round(S_next[1, :] + S_next[5, :])  # Y + Vy
 
