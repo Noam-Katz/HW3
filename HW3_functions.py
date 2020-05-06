@@ -1,12 +1,15 @@
+import math
+
 import cv2
 import numpy as np
 import numpy.matlib
 from certifi.__main__ import args
-
+import numpy.matlib
 from HW3_functions import *
 import os
+import os
 import argparse
-from sklearn.cluster import MiniBatchKMeans
+from scipy.stats import truncnorm
 import numpy as np
 from skimage import io
 from sklearn.cluster import KMeans
@@ -26,20 +29,21 @@ def compNormHist(I, S):
     # OUTPUT = normHist (NORMALIZED HISTOGRAM 16x16x16 SPREAD OUT AS A 4096x1 VECTOR. NORMALIZED = SUM OF TOTAL ELEMENTS IN THE HISTOGRAM = 1)
     patch = I[(S[1] - S[3]):(S[1] + S[3]), (S[0] - S[2]):(S[0] + S[2])]
     n_colors = 16
-    RGBvector = [0]*4096
+    RGBvector = [0] * 4096
     for i in range(3):
         indexRange = (np.max(patch[:, :, i]) - np.min(patch[:, :, i]))
         quantUnit = indexRange // n_colors
         patch[:, :, i] = (patch[:, :, i] - np.min(patch[:, :, i])) // quantUnit
 
-    for x in range(patch.shape[1]):         # shape[1] is width
-        for y in range(patch.shape[0]):     # shape[0] is height
+    for x in range(patch.shape[1]):  # shape[1] is width
+        for y in range(patch.shape[0]):  # shape[0] is height
             R = patch[y, x, 1]
             G = patch[y, x, 1]
             B = patch[y, x, 1]
-            RGBvector[R+(G*15)+(B*15*15)] += 1
+            RGBvector[R + (G * 15) + (B * 15 * 15)] += 1
 
     return RGBvector / np.sum(RGBvector)
+
 
 def predictParticles(S_next_tag):
     # INPUT  = S_next_tag (previously sampled particles)
@@ -51,8 +55,10 @@ def predictParticles(S_next_tag):
 def compBatDist(p, q):
     # INPUT  = p , q (2 NORMALIZED HISTOGRAM VECTORS SIZED 4096x1)
     # OUTPUT = THE BHATTACHARYYA DISTANCE BETWEEN p AND q (1x1)
-    i = 1
-    """IMPORTANT - YOU WILL USE THIS FUNCTION TO UPDATE THE INDIVIDUAL WEIGHTS
+    return math.exp(20 * np.sum(np.sqrt(np.multiply(q, p))))
+
+
+"""IMPORTANT - YOU WILL USE THIS FUNCTION TO UPDATE THE INDIVIDUAL WEIGHTS
  OF EACH PARTICLE. AFTER YOU'RE DONE WITH THIS YOU WILL NEED TO COMPUTE
  THE 100 NORMALIZED WEIGHTS WHICH WILL RESIDE IN VECTOR W (1x100)
  AND THE CDF (CUMULATIVE DISTRIBUTION FUNCTION, C. SIZED 1x100)
@@ -62,7 +68,21 @@ def compBatDist(p, q):
 def sampleParticles(S_prev, C):
     # INPUT  = S_prev (PREVIOUS STATE VECTOR MATRIX), C (CDF)
     # OUTPUT = S_next_tag (NEW X STATE VECTOR MATRIX)
-    i = 1
+    mean, sigma = 0, 0.1
+    minValue = 1
+    S_next_tag = np.zeros_like(S_prev)
+    for n in range(len(C)):
+        r = np.random.normal(mean, sigma)
+        minValue = 1
+
+        for c in C:
+            if c >= r:
+                if c < minValue:
+                    minValue = c
+        j = C.index(minValue)
+        S_next_tag[:, n] = S_prev[:, j]
+
+    return S_next_tag
 
 
 def showParticles(I, S):

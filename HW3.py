@@ -66,7 +66,7 @@ s_initial = [297,    # x center
                0]    # velocity y
 
 # CREATE INITIAL PARTICLE MATRIX 'S' (SIZE 6xN)
-S = predictParticles(np.matlib.repmat(s_initial, 1, N))
+S = predictParticles(np.matlib.repmat(s_initial, N, 1).T)
 
 # LOAD FIRST IMAGE
 I = cv2.imread(IMAGE_DIR_PATH + os.sep + "001.png")
@@ -74,17 +74,19 @@ I = cv2.imread(IMAGE_DIR_PATH + os.sep + "001.png")
 # COMPUTE NORMALIZED HISTOGRAM
 q = compNormHist(I, s_initial)
 p = compNormHist(I, s_initial)
-# COMPUTE NORMALIZED WEIGHTS (W) AND PREDICTOR CDFS (C)
-W = [np.zeros(len(s_initial))] * N
-for j in range(N):
-    W[j] = exp(20*np.sum(np.sqrt(np.multiply(q,p))))
 
+# COMPUTE BAT DISTANCE (W)
+W = np.zeros(100)
+for j in range(N):
+    W[j] = compBatDist(p, q)
+
+# COMPUTE NORMALIZED WEIGHTS (W) AND PREDICTOR CDFS (C)
 W = W / np.sum(W)
 C = [0] * N
 C[0] = W[0]
 for c in range(1,N):
     C[c] = W[c]+C[c-1]
-
+#C = np.array(C)
 images_processed = 1
 
 # MAIN TRACKING LOOP
