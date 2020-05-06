@@ -1,18 +1,5 @@
 import math
-
-import cv2
 import numpy as np
-import numpy.matlib
-from certifi.__main__ import args
-import numpy.matlib
-from HW3_functions import *
-import os
-import os
-import argparse
-from scipy.stats import truncnorm
-import numpy as np
-from skimage import io
-from sklearn.cluster import KMeans
 
 """
 s_initial = [297,    # x center
@@ -48,7 +35,17 @@ def compNormHist(I, S):
 def predictParticles(S_next_tag):
     # INPUT  = S_next_tag (previously sampled particles)
     # OUTPUT = S_next (predicted particles. weights and CDF not updated yet)
+    mean, sigma = 0, 1
+
     S_next = S_next_tag
+    S_next[0, :] = np.round(S_next[0, :] + S_next[4, :])  # X + Vx
+    S_next[1, :] = np.round(S_next[1, :] + S_next[5, :])  # Y + Vy
+
+    # Add normal noise, each particle gets different noise
+    for s in range(max(S_next.shape)):
+        noise = np.round(np.random.normal(mean, sigma, 6)).astype(int)
+        S_next[:, s] += noise
+
     return S_next
 
 
@@ -68,17 +65,19 @@ def compBatDist(p, q):
 def sampleParticles(S_prev, C):
     # INPUT  = S_prev (PREVIOUS STATE VECTOR MATRIX), C (CDF)
     # OUTPUT = S_next_tag (NEW X STATE VECTOR MATRIX)
-    mean, sigma = 0, 0.1
-    minValue = 1
     S_next_tag = np.zeros_like(S_prev)
     for n in range(len(C)):
-        r = np.random.normal(mean, sigma)
+        # r is random number - uniform distribution
+        r = np.random.uniform(0, 1)
         minValue = 1
 
+        # find the minimal value which is bigger than r
         for c in C:
             if c >= r:
                 if c < minValue:
                     minValue = c
+
+        # Get the index and store it in the next S
         j = C.index(minValue)
         S_next_tag[:, n] = S_prev[:, j]
 
