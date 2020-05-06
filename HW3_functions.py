@@ -1,5 +1,7 @@
 import math
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 """
 s_initial = [297,    # x center
@@ -90,8 +92,49 @@ def sampleParticles(S_prev, C):
     return S_next_tag
 
 
-def showParticles(I, S):
+def showParticles(I, S, W, i, ID):
     # INPUT = I (current frame), S (current state vector)
     #        W (current weight vector), i (number of current frame)
     #        ID
-    i = 1
+
+    # Finding the average particle from weight vector
+    average_particle = np.mean(W)
+    average_particle_index = np.min(np.argwhere(W = average_particle))
+    S_average_particle = S[: ,average_particle_index]
+
+    # Adding green rectangle around the average particle
+    x_start, y_start = S_average_particle[0] - S_average_particle[2] , S_average_particle[1] - S_average_particle[3]
+    x_stop, y_stop = S_average_particle[0] + S_average_particle[2] , S_average_particle[1] + S_average_particle[3]
+    #rect_average_green = patches.Rectangle((x_start, y_start) ,S_average_particle[2] * 2, S_average_particle[3] * 2, lw = 1, ec = 'g', fc = 'none')
+    rect_average_green = cv2.rectangle(I, (x_start, y_start), (x_stop, y_stop), (0, 255, 0), 1, lineType=8, shift=0) # color in BGR
+
+
+    # Finding the maximal particle from weight vector
+    maximal_particle = np.argmax(W)
+    maximal_particle_index = np.min(np.argwhere(W = maximal_particle))
+    S_maximal_particle = S[:, maximal_particle_index]
+
+    # Adding red rectangle around the maximal particle
+    x_start, y_start = S_maximal_particle[0] - S_maximal_particle[2] , S_maximal_particle[1] - S_maximal_particle[3]
+    x_stop, y_stop = S_maximal_particle[0] + S_maximal_particle[2] , S_maximal_particle[1] + S_maximal_particle[3]
+    #rect_max_red = patches.Rectangle((x_start, y_start) ,S_average_particle[2] * 2, S_average_particle[3] * 2, lw = 1, ec = 'r', fc = 'none')
+    rect_max_red = cv2.rectangle(I, (x_start, y_start), (x_stop, y_stop), (0, 0, 255), 1, lineType=8, shift=0) # color in BGR
+
+    # Displaying image
+    figure, axs = plt.subplots(1)
+    figure = axs.imshow(cv2.cvtColor(I, cv2.COLOR_BGR2RGB))
+
+    figure.axes.get_xaxis().set_visible(False)
+    figure.axes.get_yaxis().set_visible(False)
+    #figure.axis('off')
+
+    # axs.add_patch(rect_max_red)
+    # axs.add_patch(rect_average_green)
+
+    plt.title("HW3_{0}- Frame number = {1}".format(ID, int(i)))
+
+    # saving the wanted images
+    if i % 10 == 0:
+        plt.savefig("HW3_{0}-{1}.png".format(ID, int(i)))
+
+    plt.show(block = False)

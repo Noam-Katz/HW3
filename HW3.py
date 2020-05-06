@@ -73,7 +73,7 @@ I = cv2.imread(IMAGE_DIR_PATH + os.sep + "001.png")
 
 # COMPUTE NORMALIZED HISTOGRAM
 q = compNormHist(I, s_initial)
-p = compNormHist(I, s_initial)
+p = compNormHist(I, S[:, 0])
 
 # COMPUTE BAT DISTANCE (W)
 W = np.zeros(100)
@@ -90,6 +90,7 @@ for c in range(1,N):
 images_processed = 1
 
 # MAIN TRACKING LOOP
+i = 1
 image_name_list = os.listdir(IMAGE_DIR_PATH)
 for image_name in image_name_list[1:]:
 
@@ -105,13 +106,27 @@ for image_name in image_name_list[1:]:
     # PREDICT THE NEXT PARTICLE FILTERS (YOU MAY ADD NOISE
     S = predictParticles(S_next_tag)
 
+    # COMPUTE NORMALIZED HISTOGRAM
+    q = compNormHist(I, s_initial)
+    p = compNormHist(I, S[:,0])
+
     # COMPUTE NORMALIZED WEIGHTS (W) AND PREDICTOR CDFS (C)
     # YOU NEED TO FILL THIS PART WITH CODE:
-    # ........
-    # ........
+
+    # COMPUTE BAT DISTANCE (W)
+    for j in range(N):
+        W[j] = compBatDist(p, q)
+
+    # COMPUTE NORMALIZED WEIGHTS (W) AND PREDICTOR CDFS (C)
+    W = W / np.sum(W)
+    C = [0] * N
+    C[0] = W[0]
+    for c in range(1, N):
+        C[c] = W[c] + C[c - 1]
 
     # CREATE DETECTOR PLOTS
     images_processed += 1
     if 0 == images_processed%10:
         showParticles(I, S, W, i, ID)
+        i += 1
 
