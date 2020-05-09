@@ -89,7 +89,6 @@ for c in range(1, N):
 images_processed = 1
 
 # MAIN TRACKING LOOP
-i = 1
 image_name_list = os.listdir(IMAGE_DIR_PATH)
 for image_name in image_name_list[1:]:
 
@@ -126,8 +125,8 @@ for image_name in image_name_list[1:]:
 
     # CREATE DETECTOR PLOTS
     images_processed += 1
-    #if 0 == images_processed % 10:
-    showParticles(I, S, W, i, ID)
-    i += 1
+    i = images_processed
+    if 0 == images_processed % 10:
+        showParticles(I, S, W, i, ID)
 
 
