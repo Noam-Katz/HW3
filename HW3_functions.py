@@ -1,7 +1,9 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+import cv2
+import numpy.matlib
+import os
 
 """
 s_initial = [297,    # x center
@@ -20,11 +22,11 @@ def compNormHist(I, S):
     patch = I[(S[1] - S[3]):(S[1] + S[3]), (S[0] - S[2]):(S[0] + S[2])] # cut the patch from image
     n_colors = 16
     RGBvector = [0] * 4096
-
+    maxi = np.max(patch)
     # Quantization to 4 bits (0-15)
     for i in range(3):
         indexRange = (np.max(patch[:, :, i]) - np.min(patch[:, :, i]))
-        quantUnit = indexRange // n_colors
+        quantUnit = math.ceil(indexRange/n_colors)
         patch[:, :, i] = (patch[:, :, i] - np.min(patch[:, :, i])) // quantUnit
 
     # Making a 4096 vector for every permutation of RGB values
@@ -33,6 +35,8 @@ def compNormHist(I, S):
             R = patch[y, x, 1]
             G = patch[y, x, 1]
             B = patch[y, x, 1]
+            if (R + (G * 15) + (B * 15 * 15))>4095:
+                maxi=1
             RGBvector[R + (G * 15) + (B * 15 * 15)] += 1
 
     # Return normalized vector
@@ -77,7 +81,7 @@ def sampleParticles(S_prev, C):
     for n in range(len(C)):
         # r is random number - uniform distribution
         r = np.random.uniform(0, 1)
-        minValue = 1
+        minValue = 100
 
         # find the minimal value which is bigger than r
         for c in C:
