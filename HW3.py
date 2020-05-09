@@ -53,17 +53,16 @@ ID2 = "200940500"
 ID = "HW3_{0}_{1}".format(ID1, ID2)
 IMAGE_DIR_PATH = "{0}\\Images".format(os.getcwd())
 
-
 # SET NUMBER OF PARTICLES
 N = 100
 
 # Initial Settings
-s_initial = [297,    # x center
-             139,    # y center
-              16,    # half width
-              43,    # half height
-               0,    # velocity x
-               0]    # velocity y
+s_initial = [297,  # x center
+             139,  # y center
+             16,  # half width
+             43,  # half height
+             0,  # velocity x
+             0]  # velocity y
 
 # CREATE INITIAL PARTICLE MATRIX 'S' (SIZE 6xN)
 S = predictParticles(np.matlib.repmat(s_initial, N, 1).T)
@@ -73,20 +72,20 @@ I = cv2.imread(IMAGE_DIR_PATH + os.sep + "001.png")
 
 # COMPUTE NORMALIZED HISTOGRAM
 q = compNormHist(I, s_initial)
-p = compNormHist(I, S[:, 0])
 
 # COMPUTE BAT DISTANCE (W)
 W = np.zeros(100)
 for j in range(N):
+    p = compNormHist(I, S[:, j])
     W[j] = compBatDist(p, q)
 
 # COMPUTE NORMALIZED WEIGHTS (W) AND PREDICTOR CDFS (C)
 W = W / np.sum(W)
 C = [0] * N
 C[0] = W[0]
-for c in range(1,N):
-    C[c] = W[c]+C[c-1]
-#C = np.array(C)
+for c in range(1, N):
+    C[c] = W[c] + C[c - 1]
+# C = np.array(C)
 images_processed = 1
 
 # MAIN TRACKING LOOP
@@ -108,13 +107,14 @@ for image_name in image_name_list[1:]:
 
     # COMPUTE NORMALIZED HISTOGRAM
     q = compNormHist(I, s_initial)
-    p = compNormHist(I, S[:,0])
+    # p = compNormHist(I, S[:,0])
 
     # COMPUTE NORMALIZED WEIGHTS (W) AND PREDICTOR CDFS (C)
     # YOU NEED TO FILL THIS PART WITH CODE:
 
     # COMPUTE BAT DISTANCE (W)
     for j in range(N):
+        p = compNormHist(I, S[:, j])
         W[j] = compBatDist(p, q)
 
     # COMPUTE NORMALIZED WEIGHTS (W) AND PREDICTOR CDFS (C)
@@ -126,7 +126,8 @@ for image_name in image_name_list[1:]:
 
     # CREATE DETECTOR PLOTS
     images_processed += 1
-    if 0 == images_processed%10:
-        showParticles(I, S, W, i, ID)
-        i += 1
+    #if 0 == images_processed % 10:
+    showParticles(I, S, W, i, ID)
+    i += 1
+
 
