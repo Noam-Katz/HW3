@@ -60,7 +60,7 @@ def compNormHist(I, S):
 def predictParticles(S_next_tag):
     # INPUT  = S_next_tag (previously sampled particles)
     # OUTPUT = S_next (predicted particles. weights and CDF not updated yet)
-    mean, sigma = 0, 1
+    mean, sigma = 0, 5
     S_next = np.copy(S_next_tag)
 
     # Add velocity to pixels value
@@ -70,8 +70,8 @@ def predictParticles(S_next_tag):
 
     # Add normal noise, each particle gets different noise
     for s in range(S_next.shape[0]):
-        noise = np.round(np.random.normal(mean, sigma, S_next.shape[1])).astype(int)
         if s != 2 and s != 3:
+            noise = np.round(np.random.normal(mean, sigma, S_next.shape[1])).astype(int)
             S_next[s, :] += noise
 
     S_next[0][S_next[0] < S_next[2][0]] = S_next[2][0]
@@ -83,7 +83,7 @@ def predictParticles(S_next_tag):
 def compBatDist(p, q):
     # INPUT  = p , q (2 NORMALIZED HISTOGRAM VECTORS SIZED 4096x1)
     # OUTPUT = THE BHATTACHARYYA DISTANCE BETWEEN p AND q (1x1)
-    return math.exp(20 * np.sum(np.sqrt(q @ p)))
+    return np.exp(20 * np.sum(np.sqrt(np.multiply(p, q))))
 
 
 """IMPORTANT - YOU WILL USE THIS FUNCTION TO UPDATE THE INDIVIDUAL WEIGHTS
@@ -109,7 +109,7 @@ def sampleParticles(S_prev, C):
 
         # Get the index and store it in the next S
         j = C.index(c)
-        S_next_tag[:, n] = np.copy(S_prev[:, j])
+        S_next_tag[:, n] = S_prev[:, j]
 
     return S_next_tag
 
@@ -119,8 +119,8 @@ def showParticles(I, S, W, i, ID):
     #        W (current weight vector), i (number of current frame)
     #        ID
     # Finding the average particle from weight vector
-    average_particle = np.mean(W)
-    average_particle_index = np.argmin((np.abs(W - average_particle)))
+    average_particle_weight = np.mean(W)
+    average_particle_index = np.argmin((np.abs(W - average_particle_weight)))
     S_average_particle = S[:, average_particle_index]
 
     # Adding green rectangle around the average particle
@@ -134,13 +134,13 @@ def showParticles(I, S, W, i, ID):
     right = np.sum(S[0, :] @ W[:]) + S[2, 1]
     top = np.sum(S[1, :] @ W[:]) + S[3, 1]"""
 
-    left = np.mean(S[0, :]) - S[2, 1]
+    """left = np.mean(S[0, :]) - S[2, 1]
     bot = np.mean(S[1, :]) - S[3, 1]
     right = np.mean(S[0, :]) + S[2, 1]
     top = np.mean(S[1, :]) + S[3, 1]
 
     green_start_point = (int(left), int(bot))
-    green_stop_point = (int(right), int(top))
+    green_stop_point = (int(right), int(top))"""
 
     I = cv2.rectangle(I, green_start_point, green_stop_point, (0, 255, 0), 2, lineType=8, shift=0)  # color in BGR
 

@@ -93,7 +93,6 @@ for image_name in image_name_list[1:]:
 
     # LOAD NEW IMAGE FRAME
     image_path = IMAGE_DIR_PATH + os.sep + image_name
-
     I = cv2.imread(image_path)
 
     # SAMPLE THE CURRENT PARTICLE FILTERS
@@ -106,6 +105,8 @@ for image_name in image_name_list[1:]:
     # YOU NEED TO FILL THIS PART WITH CODE:
     # COMPUTE BAT DISTANCE (W)
     for j in range(N):
+        if (S[2, j] != 16 or S[3, j] != 43):
+            print("false")
         p = compNormHist(I, S[:, j])
         W[j] = compBatDist(p, q)
 
