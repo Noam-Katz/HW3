@@ -34,6 +34,8 @@ def compNormHist(I, S):
     # Quantization to 4 bits (0-15) loop runs for R,G,B
     for i in range(3):
         # find the range of values at the patch
+        #if (not np.max(patch[:, :, i].size)) or (not np.min(patch[:, :, i].size)):
+        #    patch[:, :, i] = 0
         indexRange = (np.max(patch[:, :, i]) - np.min(patch[:, :, i]))
         if indexRange == 0:  # in case all pixels of same color has same value
             patch[:, :, i] = 0
@@ -65,11 +67,15 @@ def predictParticles(S_next_tag):
     S_next[0, :] = np.round(S_next[0, :] + S_next[4, :])  # X + Vx
     S_next[1, :] = np.round(S_next[1, :] + S_next[5, :])  # Y + Vy
 
+
     # Add normal noise, each particle gets different noise
     for s in range(S_next.shape[0]):
         noise = np.round(np.random.normal(mean, sigma, S_next.shape[1])).astype(int)
-        if s != 3 and s != 2:
+        if s != 2 and s != 3:
             S_next[s, :] += noise
+
+    S_next[0][S_next[0] < S_next[2][0]] = S_next[2][0]
+    S_next[1][S_next[1] < S_next[3][0]] = S_next[3][0]
 
     return S_next
 
