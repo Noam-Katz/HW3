@@ -81,11 +81,8 @@ for j in range(N):
 
 # COMPUTE NORMALIZED WEIGHTS (W) AND PREDICTOR CDFS (C)
 W = W / np.sum(W)
-C = [0] * N
-C[0] = W[0]
-for c in range(1, N):
-    C[c] = W[c] + C[c - 1]
-# C = np.array(C)
+C = (np.cumsum(W)).tolist()
+
 images_processed = 1
 
 # MAIN TRACKING LOOP
@@ -96,6 +93,7 @@ for image_name in image_name_list[1:]:
 
     # LOAD NEW IMAGE FRAME
     image_path = IMAGE_DIR_PATH + os.sep + image_name
+
     I = cv2.imread(image_path)
 
     # SAMPLE THE CURRENT PARTICLE FILTERS
@@ -118,10 +116,10 @@ for image_name in image_name_list[1:]:
 
     # COMPUTE NORMALIZED WEIGHTS (W) AND PREDICTOR CDFS (C)
     W = W / np.sum(W)
+
     C = [0] * N
     C[0] = W[0]
-    for c in range(1, N):
-        C[c] = W[c] + C[c - 1]
+    C = (np.cumsum(W)).tolist()
 
     # CREATE DETECTOR PLOTS
     images_processed += 1
@@ -129,4 +127,5 @@ for image_name in image_name_list[1:]:
     if 0 == images_processed % 10:
         showParticles(I, S, W, i, ID)
 
-
+    if images_processed > 110:
+        break
