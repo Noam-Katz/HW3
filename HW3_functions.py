@@ -27,15 +27,12 @@ def compNormHist(I, S):
     xhigh = np.clip(S[0] + S[2], 1, I.shape[1])
 
     patch = ICopy[ylow:yhigh, xlow:xhigh]  # cut the patch from image
-    indexRange = 0
     n_colors = 16
     RGBvector = [0] * 4096
 
     # Quantization to 4 bits (0-15) loop runs for R,G,B
     for i in range(3):
         # find the range of values at the patch
-        #if (not np.max(patch[:, :, i].size)) or (not np.min(patch[:, :, i].size)):
-        #    patch[:, :, i] = 0
         indexRange = (np.max(patch[:, :, i]) - np.min(patch[:, :, i]))
         if indexRange == 0:  # in case all pixels of same color has same value
             patch[:, :, i] = 0
@@ -60,13 +57,12 @@ def compNormHist(I, S):
 def predictParticles(S_next_tag):
     # INPUT  = S_next_tag (previously sampled particles)
     # OUTPUT = S_next (predicted particles. weights and CDF not updated yet)
-    mean, sigma = 0, 5
+    mean, sigma = 0, 2
     S_next = np.copy(S_next_tag)
 
     # Add velocity to pixels value
-    S_next[0, :] = np.round(S_next[0, :] + S_next[4, :])  # X + Vx
-    S_next[1, :] = np.round(S_next[1, :] + S_next[5, :])  # Y + Vy
-
+    S_next[0, :] += S_next[4, :]  # X + Vx
+    S_next[1, :] += S_next[5, :]  # Y + Vy
 
     # Add normal noise, each particle gets different noise
     for s in range(S_next.shape[0]):
@@ -74,6 +70,7 @@ def predictParticles(S_next_tag):
             noise = np.round(np.random.normal(mean, sigma, S_next.shape[1])).astype(int)
             S_next[s, :] += noise
 
+    # Keeping the boundaries
     S_next[0][S_next[0] < S_next[2][0]] = S_next[2][0]
     S_next[1][S_next[1] < S_next[3][0]] = S_next[3][0]
 
@@ -118,29 +115,29 @@ def showParticles(I, S, W, i, ID):
     # INPUT = I (current frame), S (current state vector)
     #        W (current weight vector), i (number of current frame)
     #        ID
+
+    """ ANOTHER OPTION TO SHOW AVERAGE PARTICLE
     # Finding the average particle from weight vector
     average_particle_weight = np.mean(W)
     average_particle_index = np.argmin((np.abs(W - average_particle_weight)))
     S_average_particle = S[:, average_particle_index]
 
-    # Adding green rectangle around the average particle
     green_start_point = (S_average_particle[0] - S_average_particle[2], S_average_particle[1] - S_average_particle[3])
     green_stop_point = (S_average_particle[0] + S_average_particle[2], S_average_particle[1] + S_average_particle[3])
 
-    # Using the weight to find the position
-    """
     left = np.sum(S[0, :] @ W[:]) - S[2, 1]
     bot = np.sum(S[1, :] @ W[:]) - S[3, 1]
     right = np.sum(S[0, :] @ W[:]) + S[2, 1]
     top = np.sum(S[1, :] @ W[:]) + S[3, 1]"""
 
-    """left = np.mean(S[0, :]) - S[2, 1]
+    # Adding green rectangle around the average particle
+    left = np.mean(S[0, :]) - S[2, 1]
     bot = np.mean(S[1, :]) - S[3, 1]
     right = np.mean(S[0, :]) + S[2, 1]
     top = np.mean(S[1, :]) + S[3, 1]
 
     green_start_point = (int(left), int(bot))
-    green_stop_point = (int(right), int(top))"""
+    green_stop_point = (int(right), int(top))
 
     I = cv2.rectangle(I, green_start_point, green_stop_point, (0, 255, 0), 2, lineType=8, shift=0)  # color in BGR
 
@@ -159,7 +156,6 @@ def showParticles(I, S, W, i, ID):
 
     plt.title("{0}- Frame number = {1}".format(ID, int(i)))
 
-    # saving the wanted images
+    # saving and showing the wanted images
     plt.savefig("{0}-{1}.png".format(ID, int(i)))
-    print('Saved frame {0}'.format(int(i)))
-    # plt.show(block=False)
+    plt.show(block=False)

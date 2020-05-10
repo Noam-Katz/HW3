@@ -105,8 +105,6 @@ for image_name in image_name_list[1:]:
     # YOU NEED TO FILL THIS PART WITH CODE:
     # COMPUTE BAT DISTANCE (W)
     for j in range(N):
-        if (S[2, j] != 16 or S[3, j] != 43):
-            print("false")
         p = compNormHist(I, S[:, j])
         W[j] = compBatDist(p, q)
 
@@ -120,5 +118,5 @@ for image_name in image_name_list[1:]:
     if 0 == images_processed % 10:
         showParticles(I, S, W, i, ID)
 
-    if images_processed > 110:
-        break
+    #if images_processed > 110:
+    #    break
