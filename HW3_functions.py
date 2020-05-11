@@ -18,7 +18,10 @@ s_initial = [297,    # x center
 def compNormHist(I, S):
     # INPUT  = I (image) AND s (1x6 STATE VECTOR, CAN ALSO BE ONE COLUMN FROM S)
     # OUTPUT = normHist (NORMALIZED HISTOGRAM 16x16x16 SPREAD OUT AS A 4096x1 VECTOR. NORMALIZED = SUM OF TOTAL ELEMENTS IN THE HISTOGRAM = 1)
-    ICopy = I.copy()
+    n_colors = 16
+    RGBvector = np.zeros((n_colors, n_colors, n_colors), dtype = int)
+
+    I_B, I_G, I_R = cv2.split(I)
 
     # keep the patch in the image boundaries
     ylow = np.clip(S[1] - S[3], 0, I.shape[0] - 1)
@@ -26,28 +29,17 @@ def compNormHist(I, S):
     xlow = np.clip(S[0] - S[2], 0, I.shape[1] - 1)
     xhigh = np.clip(S[0] + S[2], 1, I.shape[1])
 
-    patch = ICopy[ylow:yhigh, xlow:xhigh]  # cut the patch from image
-    n_colors = 16
-    RGBvector = [0] * 4096
+    patch_R = (I_R[ylow:yhigh, xlow:xhigh]/n_colors).astype(int)  # cut the patch from image
+    patch_B = (I_B[ylow:yhigh, xlow:xhigh]/n_colors).astype(int)  # cut the patch from image
+    patch_G = (I_G[ylow:yhigh, xlow:xhigh]/n_colors).astype(int)  # cut the patch from image
 
-    # Quantization to 4 bits (0-15) loop runs for R,G,B
-    for i in range(3):
-        # find the range of values at the patch
-        indexRange = (np.max(patch[:, :, i]) - np.min(patch[:, :, i]))
-        if indexRange == 0:  # in case all pixels of same color has same value
-            patch[:, :, i] = 0
-        else:
-            quantUnit = math.ceil(indexRange / n_colors)
-            patch[:, :, i] = (patch[:, :, i] - np.min(patch[:, :, i])) // quantUnit
 
     # Making a 4096 vector for every permutation of RGB values
-    for x in range(patch.shape[1]):  # shape[1] is width
-        for y in range(patch.shape[0]):  # shape[0] is height
-            R = patch[y, x, 0]
-            G = patch[y, x, 1]
-            B = patch[y, x, 2]
-            RGBvector[R + (G * 15) + (B * 15 * 15)] += 1
+    for x in range(patch_R.shape[1]):  # shape[1] is width
+        for y in range(patch_R.shape[0]):  # shape[0] is height
+            RGBvector[patch_R[y, x], patch_G[y, x], patch_B[y, x]] += 1
 
+    RGBvector = np.reshape(RGBvector, (1,4096))
     # Return normalized vector
     if np.sum(RGBvector) == 0:
         return RGBvector
@@ -96,7 +88,7 @@ def sampleParticles(S_prev, C):
     S_next_tag = np.zeros_like(S_prev)
     for n in range(len(C)):
         # r is random number - uniform distribution
-        r = np.random.uniform(0, 0.99)
+        r = np.random.uniform(0, 1)
         minValue = 100
 
         # find the minimal value which is bigger than r

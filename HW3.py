@@ -118,5 +118,3 @@ for image_name in image_name_list[1:]:
     if 0 == images_processed % 10:
         showParticles(I, S, W, i, ID)
 
-    #if images_processed > 110:
-    #    break
