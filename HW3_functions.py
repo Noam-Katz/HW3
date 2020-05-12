@@ -1,4 +1,6 @@
 import math
+import time
+
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
@@ -151,3 +153,5 @@ def showParticles(I, S, W, i, ID):
     # saving and showing the wanted images
     plt.savefig("{0}-{1}.png".format(ID, int(i)))
     plt.show(block=False)
+    plt.pause(0.01)   # otherwise figure is not responding due to "block = False"
+
